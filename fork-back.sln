@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32526.322
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "fork-back", "fork-back\fork-back.csproj", "{1C06B00E-50AF-49B8-A469-38335928C5FE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1C06B00E-50AF-49B8-A469-38335928C5FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1C06B00E-50AF-49B8-A469-38335928C5FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1C06B00E-50AF-49B8-A469-38335928C5FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1C06B00E-50AF-49B8-A469-38335928C5FE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4843B498-5B04-4534-A1C3-2D310E375EBB}
+	EndGlobalSection
+EndGlobal
