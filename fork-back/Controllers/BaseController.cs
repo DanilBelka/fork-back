@@ -8,5 +8,6 @@ namespace fork_back.Controllers
     [Route("api/[controller]")]
     public class BaseController : ControllerBase
     {
+        public const int MaxPageCount = 2000;
     }
 }
