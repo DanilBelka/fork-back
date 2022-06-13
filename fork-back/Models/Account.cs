@@ -7,7 +7,7 @@ namespace fork_back.Models
         public int Id { get; set; }
 
         [EmailAddress]
-        public string Loging { get; set; } = string.Empty;
+        public string Login { get; set; } = string.Empty;
 
         public string FirstName { get; set; } = string.Empty;
 
