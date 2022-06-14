@@ -12,7 +12,12 @@ namespace fork_back.DataContext
         {
             ConnectionString = config.GetConnectionString("MySqlConnection");
 
-            //Database.EnsureDeleted();
+            Database.EnsureCreated();
+        }
+
+        public override void RecreateDatabase()
+        {
+            Database.EnsureDeleted();
             Database.EnsureCreated();
         }
 
