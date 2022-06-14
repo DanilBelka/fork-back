@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace fork_back.DataContext
 {
-    public class DatabaseContext : DbContext
+    public abstract class DatabaseContext : DbContext
     {
         public DbSet<Account> Accounts { get; set; } = null!;
 
@@ -17,5 +17,7 @@ namespace fork_back.DataContext
           : base(options)
         {
         }
+
+        public abstract void RecreateDatabase();
     }
 }
