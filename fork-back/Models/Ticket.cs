@@ -13,7 +13,8 @@
     {
         public int Id { get; set; }
 
-        public Epic Epic { get; set; } = new Epic();
+        public int EpicId { get; set; }
+        public Epic? Epic { get; set; }
 
         public string Title { get; set; } = string.Empty;
 
