@@ -30,7 +30,7 @@ namespace fork_back.Controllers
         }
 
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<Account>> GetAccountAsync([Range(0, int.MaxValue)] int id)
+        public async Task<ActionResult<Account>> GetAccountAsync([Range(1, int.MaxValue)] int id)
         {
             var res = await DataContext.Accounts.Include(a => a.Tickets)
                                                 .FirstOrDefaultAsync(a => a.Id == id);
@@ -44,7 +44,7 @@ namespace fork_back.Controllers
         }
 
         [HttpDelete("{id:int}")]
-        public async Task<ActionResult> DeleteAccountAsync([Range(0, int.MaxValue)] int id)
+        public async Task<ActionResult> DeleteAccountAsync([Range(1, int.MaxValue)] int id)
         {
             var res = await DataContext.Accounts.FirstOrDefaultAsync(a => a.Id == id);
             if (res == default)
