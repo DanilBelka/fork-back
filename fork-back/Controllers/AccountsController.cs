@@ -26,6 +26,10 @@ namespace fork_back.Controllers
                                                 .Skip(offset ?? 0)
                                                 .Take(limit ?? MaxPageCount)
                                                 .ToListAsync();
+
+            // avoid cycle references in JSON result
+            res.ForEach(a => a.Tickets?.ForEach(t => t.Accounts = null));
+
             return res;
         }
 
@@ -39,6 +43,9 @@ namespace fork_back.Controllers
             {
                 return NotFound();
             }
+
+            // avoid cycle references in JSON result
+            res.Tickets?.ForEach(t => t.Accounts = null);
 
             return res;
         }

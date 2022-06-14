@@ -26,6 +26,10 @@ namespace fork_back.Controllers
                                                 .Skip(offset ?? 0)
                                                 .Take(limit ?? MaxPageCount)
                                                 .ToListAsync();
+
+            // avoid cycle references in JSON result
+            res.ForEach(p => p.Epics?.ForEach(e => e.Project = null));
+
             return res;
         }
 
@@ -39,6 +43,9 @@ namespace fork_back.Controllers
             {
                 return NotFound();
             }
+
+            // avoid cycle references in JSON result
+            res.Epics?.ForEach(e => e.Project = null);
 
             return res;
         }

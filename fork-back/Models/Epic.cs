@@ -4,7 +4,8 @@
     {
         public int Id { get; set; }
 
-        public Project Project { get; set; } = new Project();
+        public int ProjectId { get; set; }
+        public Project? Project { get; set; }
 
         public string Title { get; set; } = string.Empty;
 
