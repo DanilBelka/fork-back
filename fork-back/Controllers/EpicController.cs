@@ -44,7 +44,9 @@ namespace fork_back.Controllers
             }
 
             // avoid cycle references in JSON result
-            res.ForEach(e => e.Tickets?.ForEach(t => t.Epic = null));
+            res.ForEach(e => { if (e.Project != default) { e.Project.Epics = default; } });
+            res.ForEach(e => e.Tickets?.ForEach(t => t.Epic = default));
+            res.ForEach(e => e.Tickets?.ForEach(t => t.Accounts = default));
 
             return res;
         }
@@ -77,10 +79,11 @@ namespace fork_back.Controllers
             {
                 if (res.Project != default)
                 {
-                    res.Project.Epics = null;
+                    res.Project.Epics = default;
                 }
 
-                res.Tickets?.ForEach(t => t.Epic = null);
+                res.Tickets?.ForEach(t => t.Epic = default);
+                res.Tickets?.ForEach(t => t.Accounts = default);
             }
 
             return res;
