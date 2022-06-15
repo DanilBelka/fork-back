@@ -22,22 +22,30 @@ namespace fork_back.Controllers
         public async Task<IEnumerable<Account>> GetListAsync([Range(1, MaxPageCount)] int? limit,
                                                              [Range(0, int.MaxValue)] int? offset)
         {
-            var res = await DataContext.Accounts.Include(a => a.Tickets)
+            var res = await DataContext.Accounts.OrderBy(a => a.Id)
                                                 .Skip(offset ?? 0)
                                                 .Take(limit ?? MaxPageCount)
                                                 .ToListAsync();
 
             // avoid cycle references in JSON result
-            res.ForEach(a => a.Tickets?.ForEach(t => t.Accounts = null));
+            res.ForEach(a => a.Tickets?.ForEach(t => t.Accounts = default));
+            res.ForEach(a => a.Tickets?.ForEach(t => t.Epic = default));
 
             return res;
         }
 
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<Account>> GetAccountAsync([Range(1, int.MaxValue)] int id)
+        public async Task<ActionResult<Account>> GetAccountAsync([Range(1, int.MaxValue)] int id,
+                                                                 bool includeTickets = false)
         {
-            var res = await DataContext.Accounts.Include(a => a.Tickets)
-                                                .FirstOrDefaultAsync(a => a.Id == id);
+            var query = DataContext.Accounts.AsQueryable();
+
+            if (includeTickets)
+            {
+                query = query.Include(a => a.Tickets);
+            }
+
+            var res = await query.FirstOrDefaultAsync(a => a.Id == id);
 
             if (res == default)
             {
@@ -45,7 +53,8 @@ namespace fork_back.Controllers
             }
 
             // avoid cycle references in JSON result
-            res.Tickets?.ForEach(t => t.Accounts = null);
+            res.Tickets?.ForEach(t => t.Accounts = default);
+            res.Tickets?.ForEach(t => t.Epic = default);
 
             return res;
         }
@@ -69,6 +78,13 @@ namespace fork_back.Controllers
         [Consumes(MediaTypeNames.Application.Json)]
         public async Task<ActionResult<Account>> CreateAccountAsync(Account account)
         {
+            var invalidId = account.Id != 0;
+            if (invalidId)
+            {
+                ModelState.AddModelError(nameof(Account.Id), "Id should be empty.");
+                return ValidationProblem();
+            }
+
             var isLoginBusy = await DataContext.Accounts.AnyAsync(a => a.Login == account.Login);
             if (isLoginBusy)
             {
@@ -113,7 +129,7 @@ namespace fork_back.Controllers
 
             await DataContext.SaveChangesAsync();
 
-            return account;
+            return res;
         }
     }
 }
