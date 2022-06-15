@@ -22,22 +22,30 @@ namespace fork_back.Controllers
         public async Task<IEnumerable<Project>> GetListAsync([Range(1, MaxPageCount)] int? limit,
                                                            [Range(0, int.MaxValue)] int? offset)
         {
-            var res = await DataContext.Projects.Include(p => p.Epics)
+            var res = await DataContext.Projects.OrderBy(p => p.Id)
                                                 .Skip(offset ?? 0)
                                                 .Take(limit ?? MaxPageCount)
                                                 .ToListAsync();
 
             // avoid cycle references in JSON result
-            res.ForEach(p => p.Epics?.ForEach(e => e.Project = null));
+            res.ForEach(p => p.Epics?.ForEach(e => e.Project = default));
+            res.ForEach(p => p.Epics?.ForEach(e => e.Tickets = default));
 
             return res;
         }
 
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<Project>> GetProjectAsync([Range(1, int.MaxValue)] int id)
+        public async Task<ActionResult<Project>> GetProjectAsync([Range(1, int.MaxValue)] int id,
+                                                                 bool includeEpics = false)
         {
-            var res = await DataContext.Projects.Include(p => p.Epics)
-                                                .FirstOrDefaultAsync(p => p.Id == id);
+            var query = DataContext.Projects.AsQueryable();
+
+            if (includeEpics)
+            {
+                query = query.Include(a => a.Epics);
+            }
+
+            var res = await query.FirstOrDefaultAsync(p => p.Id == id);
 
             if (res == default)
             {
@@ -45,7 +53,8 @@ namespace fork_back.Controllers
             }
 
             // avoid cycle references in JSON result
-            res.Epics?.ForEach(e => e.Project = null);
+            res.Epics?.ForEach(e => e.Project = default);
+            res.Epics?.ForEach(e => e.Tickets = default);
 
             return res;
         }
@@ -69,6 +78,13 @@ namespace fork_back.Controllers
         [Consumes(MediaTypeNames.Application.Json)]
         public async Task<ActionResult<Project>> CreateProjectAsync(Project project)
         {
+            var invalidId = project.Id != 0;
+            if (invalidId)
+            {
+                ModelState.AddModelError(nameof(Project.Id), "Id should be empty.");
+                return ValidationProblem();
+            }
+
             var isUrlBusy = await DataContext.Projects.AnyAsync(p => p.Url == project.Url);
             if (isUrlBusy)
             {
@@ -114,7 +130,7 @@ namespace fork_back.Controllers
 
             await DataContext.SaveChangesAsync();
 
-            return project;
+            return res;
         }
     }
 }
