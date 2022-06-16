@@ -7,12 +7,12 @@ using System.Net.Mime;
 
 namespace fork_back.Controllers
 {
-    public class AccountsController : BaseController
+    public class AccountController : BaseController
     {
         DatabaseContext DataContext { get; init; }
-        ILogger<AccountsController> Logger { get; init; }
+        ILogger<AccountController> Logger { get; init; }
 
-        public AccountsController(DatabaseContext dbContext, ILogger<AccountsController> logger)
+        public AccountController(DatabaseContext dbContext, ILogger<AccountController> logger)
         {
             DataContext = dbContext;
             Logger = logger;
