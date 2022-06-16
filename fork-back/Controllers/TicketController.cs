@@ -189,7 +189,66 @@ namespace fork_back.Controllers
                 UpdateState(res, ticket.State);
             }
 
+            if (!ModelState.IsValid)
+            {
+                return ValidationProblem();
+            }
+
             await DataContext.SaveChangesAsync();
+
+            return res;
+        }
+
+        [HttpGet("{id:int}/State")]
+        public async Task<ActionResult<Ticket>> GetTicketStateAsync([Range(1, int.MaxValue)] int id)
+        {
+            var res = await DataContext.Tickets.FirstOrDefaultAsync(t=>t.Id == id);
+            if (res == default)
+            {
+                return NotFound();
+            }
+
+            res.Title = string.Empty;
+            res.Description = string.Empty;
+            res.Epic = default;
+            res.Accounts = default;
+
+            return res;
+        }
+
+        [HttpPut("{id:int}/State")]
+        [Consumes(MediaTypeNames.Application.Json)]
+        public async Task<ActionResult<Ticket>> EditTicketStateAsync([Range(1, int.MaxValue)] int id, TicketState state = TicketState.Triage)
+        {
+            var res = await DataContext.Tickets.FirstOrDefaultAsync(t => t.Id == id);
+            if (res == default)
+            {
+                return NotFound();
+            }
+
+            UpdateState(res, state);
+
+            if (!ModelState.IsValid)
+            {
+                return ValidationProblem();
+            }
+
+            await DataContext.SaveChangesAsync();
+
+            // avoid cycle references in JSON result
+            {
+                if (res.Epic != default)
+                {
+                    res.Epic.Tickets = default;
+
+                    if (res.Epic.Project != default)
+                    {
+                        res.Epic.Project.Epics = default;
+                    }
+                }
+
+                res.Accounts?.ForEach(a => a.Tickets = default);
+            }
 
             return res;
         }
@@ -201,45 +260,37 @@ namespace fork_back.Controllers
                 switch (state)
                 {
                     case TicketState.Triage:
+                        t.DateCreated = t.DateCreated ?? DateTime.UtcNow;
                         t.DateOpened = default;
                         t.DateResolved = default;
                         t.DateVerified = default;
                         break;
 
                     case TicketState.Open:
+                        t.DateCreated = t.DateCreated ?? DateTime.UtcNow;
                         t.DateOpened = DateTime.UtcNow;
                         t.DateResolved = default;
                         t.DateVerified = default;
                         break;
 
                     case TicketState.InProgress:
-                        if (t.DateOpened == default)
-                        {
-                            t.DateOpened = DateTime.UtcNow;
-                        }
+                        t.DateCreated = t.DateCreated ?? DateTime.UtcNow;
+                        t.DateOpened = t.DateOpened ?? DateTime.UtcNow;
                         t.DateResolved = default;
                         t.DateVerified = default;
                         break;
 
                     case TicketState.Resolved:
-                        if (t.DateOpened == default)
-                        {
-                            t.DateOpened = DateTime.UtcNow;
-                        }
+                        t.DateCreated = t.DateCreated ?? DateTime.UtcNow;
+                        t.DateOpened = t.DateOpened ?? DateTime.UtcNow;
                         t.DateResolved = DateTime.UtcNow;
                         t.DateVerified = default;
                         break;
 
                     case TicketState.Verified:
-                        if (t.DateOpened == default)
-                        {
-                            t.DateOpened = DateTime.UtcNow;
-                        }
-
-                        if (t.DateResolved == default)
-                        {
-                            t.DateResolved = DateTime.UtcNow;
-                        }
+                        t.DateCreated = t.DateCreated ?? DateTime.UtcNow;
+                        t.DateOpened = t.DateOpened ?? DateTime.UtcNow;
+                        t.DateResolved = t.DateResolved ?? DateTime.UtcNow;
                         t.DateVerified = DateTime.UtcNow;
                         break;
 
