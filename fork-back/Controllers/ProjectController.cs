@@ -7,12 +7,12 @@ using System.Net.Mime;
 
 namespace fork_back.Controllers
 {
-    public class ProjectsController : BaseController
+    public class ProjectController : BaseController
     {
         DatabaseContext DataContext { get; init; }
-        ILogger<ProjectsController> Logger { get; init; }
+        ILogger<ProjectController> Logger { get; init; }
 
-        public ProjectsController(DatabaseContext dbContext, ILogger<ProjectsController> logger)
+        public ProjectController(DatabaseContext dbContext, ILogger<ProjectController> logger)
         {
             DataContext = dbContext;
             Logger = logger;
