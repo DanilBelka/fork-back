@@ -115,6 +115,20 @@ namespace fork_back.Controllers
                 return ValidationProblem();
             }
 
+            var hasTickets = epic.Tickets?.Any() ?? false;
+            if (hasTickets)
+            {
+                ModelState.AddModelError(nameof(Epic.Tickets), "No tickets allowed here. Use other API to add ticket to epic.");
+                return ValidationProblem();
+            }
+
+            var hasProject = epic.Project != default;
+            if (hasProject)
+            {
+                ModelState.AddModelError(nameof(Epic.Project), "Use only the ProjectId here.");
+                return ValidationProblem();
+            }
+
             var hasParentProject = await DataContext.Projects.AnyAsync(p => p.Id == epic.ProjectId);
             if (!hasParentProject)
             {
@@ -136,6 +150,13 @@ namespace fork_back.Controllers
             if (hasTickets)
             {
                 ModelState.AddModelError(nameof(Account.Tickets), "Use other API to update ticket list.");
+                return ValidationProblem();
+            }
+
+            var hasProject = epic.Project != default;
+            if (hasProject)
+            {
+                ModelState.AddModelError(nameof(Epic.Project), "Use only the ProjectId here.");
                 return ValidationProblem();
             }
 

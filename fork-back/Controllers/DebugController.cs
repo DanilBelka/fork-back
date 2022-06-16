@@ -62,16 +62,16 @@ namespace fork_back.Controllers
 
             var tickets = new List<Ticket>()
             {
-                new Ticket() { Epic = epics.First(), Title = "Create Account Model", State = TicketState.Resolved, Resolved = DateTime.Now, Accounts = accounts },
-                new Ticket() { Epic = epics.First(), Title = "Create Project Model", State = TicketState.Resolved, Resolved = DateTime.Now, Accounts = accounts },
-                new Ticket() { Epic = epics.First(), Title = "Create Epic Model", State = TicketState.Resolved, Resolved = DateTime.Now, Accounts = accounts },
-                new Ticket() { Epic = epics.First(), Title = "Create Ticket Model", State = TicketState.Resolved, Resolved = DateTime.Now, Accounts = accounts },
-                new Ticket() { Epic = epics.First(), Title = "Create EF Base Context", State = TicketState.Resolved, Resolved = DateTime.Now, Accounts = accounts },
-                new Ticket() { Epic = epics.First(), Title = "Create EF MySQL Context", State = TicketState.Resolved, Resolved = DateTime.Now, Accounts = accounts },
+                new Ticket() { Epic = epics.First(), Title = "Create Account Model", State = TicketState.Resolved, DateResolved = DateTime.UtcNow, Accounts = accounts },
+                new Ticket() { Epic = epics.First(), Title = "Create Project Model", State = TicketState.Resolved, DateResolved = DateTime.UtcNow, Accounts = accounts },
+                new Ticket() { Epic = epics.First(), Title = "Create Epic Model", State = TicketState.Resolved, DateResolved = DateTime.UtcNow, Accounts = accounts },
+                new Ticket() { Epic = epics.First(), Title = "Create Ticket Model", State = TicketState.Resolved, DateResolved = DateTime.UtcNow, Accounts = accounts },
+                new Ticket() { Epic = epics.First(), Title = "Create EF Base Context", State = TicketState.Resolved, DateResolved = DateTime.UtcNow, Accounts = accounts },
+                new Ticket() { Epic = epics.First(), Title = "Create EF MySQL Context", State = TicketState.Resolved, DateResolved = DateTime.UtcNow, Accounts = accounts },
 
-                new Ticket() { Epic = epics.Skip(1).First(), Title = "Create Base Controller", State = TicketState.Verified, Verified = DateTime.Now, Accounts = accounts },
-                new Ticket() { Epic = epics.Skip(1).First(), Title = "Create Accounts Controller", State = TicketState.Verified, Verified = DateTime.Now, Accounts = accounts },
-                new Ticket() { Epic = epics.Skip(1).First(), Title = "Create Projects Controller", State = TicketState.Resolved, Resolved = DateTime.Now, Accounts = accounts },
+                new Ticket() { Epic = epics.Skip(1).First(), Title = "Create Base Controller", State = TicketState.Verified, DateVerified = DateTime.UtcNow, Accounts = accounts },
+                new Ticket() { Epic = epics.Skip(1).First(), Title = "Create Accounts Controller", State = TicketState.Verified, DateVerified = DateTime.UtcNow, Accounts = accounts },
+                new Ticket() { Epic = epics.Skip(1).First(), Title = "Create Projects Controller", State = TicketState.Resolved, DateResolved = DateTime.UtcNow, Accounts = accounts },
                 new Ticket() { Epic = epics.Skip(1).First(), Title = "Create Epics Controller", State = TicketState.Open, Accounts = accounts },
                 new Ticket() { Epic = epics.Skip(1).First(), Title = "Create Tickets Controller", State = TicketState.Triage, Accounts = accounts },
                 new Ticket() { Epic = epics.Skip(1).First(), Title = "Create Debug Controller", State = TicketState.InProgress, Accounts = accounts },

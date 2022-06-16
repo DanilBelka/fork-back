@@ -22,13 +22,13 @@
 
         public TicketState State { get; set; } = TicketState.Triage;
 
-        public DateTime Created { get; set; } = DateTime.Now;
+        public DateTime? DateCreated { get; set; }
 
-        public DateTime? Opened { get; set; }
+        public DateTime? DateOpened { get; set; }
 
-        public DateTime? Resolved { get; set; }
+        public DateTime? DateResolved { get; set; }
 
-        public DateTime? Verified { get; set; }
+        public DateTime? DateVerified { get; set; }
 
         public List<Account>? Accounts { get; set; }
     }
