@@ -32,4 +32,14 @@
 
         public List<Account>? Accounts { get; set; }
     }
+
+    public class TicketReference
+    {
+        public int Id { get; set; }
+    }
+
+    public class TicketStateData
+    {
+        public TicketState State { get; set; } = TicketState.Triage;
+    }
 }

@@ -15,4 +15,9 @@ namespace fork_back.Models
 
         public List<Ticket>? Tickets { get; set; }
     }
+
+    public class AccountReference
+    {
+        public int Id { get; set; }
+    }
 }

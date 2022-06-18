@@ -189,7 +189,151 @@ namespace fork_back.Controllers
                 UpdateState(res, ticket.State);
             }
 
+            if (!ModelState.IsValid)
+            {
+                return ValidationProblem();
+            }
+
             await DataContext.SaveChangesAsync();
+
+            return res;
+        }
+
+        [HttpGet("{id:int}/State")]
+        public async Task<ActionResult<Ticket>> GetTicketStateAsync([Range(1, int.MaxValue)] int id)
+        {
+            var res = await DataContext.Tickets.FirstOrDefaultAsync(t=>t.Id == id);
+            if (res == default)
+            {
+                return NotFound();
+            }
+
+            res.Title = string.Empty;
+            res.Description = string.Empty;
+            res.Epic = default;
+            res.Accounts = default;
+
+            return res;
+        }
+
+        [HttpPut("{id:int}/State")]
+        [Consumes(MediaTypeNames.Application.Json)]
+        public async Task<ActionResult<Ticket>> EditTicketStateAsync([Range(1, int.MaxValue)] int id,
+                                                                     TicketStateData stateData)
+        {
+            var res = await DataContext.Tickets.FirstOrDefaultAsync(t => t.Id == id);
+            if (res == default)
+            {
+                return NotFound();
+            }
+
+            UpdateState(res, stateData.State);
+
+            if (!ModelState.IsValid)
+            {
+                return ValidationProblem();
+            }
+
+            await DataContext.SaveChangesAsync();
+
+            // avoid cycle references in JSON result
+            {
+                if (res.Epic != default)
+                {
+                    res.Epic.Tickets = default;
+
+                    if (res.Epic.Project != default)
+                    {
+                        res.Epic.Project.Epics = default;
+                    }
+                }
+
+                res.Accounts?.ForEach(a => a.Tickets = default);
+            }
+
+            return res;
+        }
+
+        [HttpGet("{id:int}/Account")]
+        public async Task<ActionResult<IEnumerable<Account>>> GetTicketAccountsAsync([Range(1, int.MaxValue)] int id)
+        {
+            var ticket = await DataContext.Tickets.Where(t => t.Id == id)
+                                                  .Include(t => t.Accounts)
+                                                  .FirstOrDefaultAsync();
+            if (ticket == default)
+            {
+                return NotFound();
+            }
+
+            var res = ticket.Accounts;
+            res!.ForEach(a => a.Tickets = default);
+
+            return res;
+        }
+
+        [HttpPost("{id:int}/Account")]
+        [Consumes(MediaTypeNames.Application.Json)]
+        public async Task<ActionResult<IEnumerable<Account>>> AddTicketAccountAsync([Range(1, int.MaxValue)] int id,
+                                                                                    AccountReference accountRef)
+        {
+            var ticket = await DataContext.Tickets.Where(t => t.Id == id)
+                                                  .Include(t => t.Accounts)
+                                                  .FirstOrDefaultAsync();
+            if (ticket == default)
+            {
+                return NotFound("Ticket not found");
+            }
+
+            var isAccountAssigned = ticket.Accounts!.Any(a => a.Id == accountRef.Id);
+            if (isAccountAssigned)
+            {
+                ModelState.AddModelError(nameof(Ticket.Accounts), "Account is already assigned to the ticket.");
+                return ValidationProblem();
+            }
+
+            var acccount = await DataContext.Accounts.FirstOrDefaultAsync(a => a.Id == id);
+            if (acccount == default)
+            {
+                return NotFound("Account not found");
+            }
+
+
+            ticket.Accounts!.Add(acccount);
+            await DataContext.SaveChangesAsync();
+
+            var res = ticket.Accounts;
+            res!.ForEach(a => a.Tickets = default);
+
+            return res;
+        }
+
+        [HttpDelete("{id:int}/Account")]
+        [Consumes(MediaTypeNames.Application.Json)]
+        public async Task<ActionResult<IEnumerable<Account>>> DeleteTicketAccountAsync([Range(1, int.MaxValue)] int id,
+                                                                                       AccountReference accountRef)
+        {
+            var ticket = await DataContext.Tickets.Where(t => t.Id == id)
+                                                  .Include(t => t.Accounts)
+                                                  .FirstOrDefaultAsync();
+            if (ticket == default)
+            {
+                return NotFound("Ticket not found");
+            }
+
+            var account = ticket.Accounts!.FirstOrDefault(a => a.Id == accountRef.Id);
+            var isAccountAssigned = account != default;
+            if (!isAccountAssigned)
+            {
+                ModelState.AddModelError(nameof(Ticket.Accounts), "Account is not assigned to the ticket.");
+                return ValidationProblem();
+            }
+
+
+            ticket.Accounts!.Remove(account!);
+            await DataContext.SaveChangesAsync();
+
+            var res = ticket.Accounts;
+            res!.ForEach(a => a.Tickets = default);
 
             return res;
         }
@@ -201,45 +345,37 @@ namespace fork_back.Controllers
                 switch (state)
                 {
                     case TicketState.Triage:
+                        t.DateCreated = t.DateCreated ?? DateTime.UtcNow;
                         t.DateOpened = default;
                         t.DateResolved = default;
                         t.DateVerified = default;
                         break;
 
                     case TicketState.Open:
+                        t.DateCreated = t.DateCreated ?? DateTime.UtcNow;
                         t.DateOpened = DateTime.UtcNow;
                         t.DateResolved = default;
                         t.DateVerified = default;
                         break;
 
                     case TicketState.InProgress:
-                        if (t.DateOpened == default)
-                        {
-                            t.DateOpened = DateTime.UtcNow;
-                        }
+                        t.DateCreated = t.DateCreated ?? DateTime.UtcNow;
+                        t.DateOpened = t.DateOpened ?? DateTime.UtcNow;
                         t.DateResolved = default;
                         t.DateVerified = default;
                         break;
 
                     case TicketState.Resolved:
-                        if (t.DateOpened == default)
-                        {
-                            t.DateOpened = DateTime.UtcNow;
-                        }
+                        t.DateCreated = t.DateCreated ?? DateTime.UtcNow;
+                        t.DateOpened = t.DateOpened ?? DateTime.UtcNow;
                         t.DateResolved = DateTime.UtcNow;
                         t.DateVerified = default;
                         break;
 
                     case TicketState.Verified:
-                        if (t.DateOpened == default)
-                        {
-                            t.DateOpened = DateTime.UtcNow;
-                        }
-
-                        if (t.DateResolved == default)
-                        {
-                            t.DateResolved = DateTime.UtcNow;
-                        }
+                        t.DateCreated = t.DateCreated ?? DateTime.UtcNow;
+                        t.DateOpened = t.DateOpened ?? DateTime.UtcNow;
+                        t.DateResolved = t.DateResolved ?? DateTime.UtcNow;
                         t.DateVerified = DateTime.UtcNow;
                         break;
 
