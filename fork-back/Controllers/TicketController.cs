@@ -218,7 +218,8 @@ namespace fork_back.Controllers
 
         [HttpPut("{id:int}/State")]
         [Consumes(MediaTypeNames.Application.Json)]
-        public async Task<ActionResult<Ticket>> EditTicketStateAsync([Range(1, int.MaxValue)] int id, TicketState state = TicketState.Triage)
+        public async Task<ActionResult<Ticket>> EditTicketStateAsync([Range(1, int.MaxValue)] int id,
+                                                                     TicketStateData stateData)
         {
             var res = await DataContext.Tickets.FirstOrDefaultAsync(t => t.Id == id);
             if (res == default)
@@ -226,7 +227,7 @@ namespace fork_back.Controllers
                 return NotFound();
             }
 
-            UpdateState(res, state);
+            UpdateState(res, stateData.State);
 
             if (!ModelState.IsValid)
             {
@@ -249,6 +250,90 @@ namespace fork_back.Controllers
 
                 res.Accounts?.ForEach(a => a.Tickets = default);
             }
+
+            return res;
+        }
+
+        [HttpGet("{id:int}/Account")]
+        public async Task<ActionResult<IEnumerable<Account>>> GetTicketAccountsAsync([Range(1, int.MaxValue)] int id)
+        {
+            var ticket = await DataContext.Tickets.Where(t => t.Id == id)
+                                                  .Include(t => t.Accounts)
+                                                  .FirstOrDefaultAsync();
+            if (ticket == default)
+            {
+                return NotFound();
+            }
+
+            var res = ticket.Accounts;
+            res!.ForEach(a => a.Tickets = default);
+
+            return res;
+        }
+
+        [HttpPost("{id:int}/Account")]
+        [Consumes(MediaTypeNames.Application.Json)]
+        public async Task<ActionResult<IEnumerable<Account>>> AddTicketAccountAsync([Range(1, int.MaxValue)] int id,
+                                                                                    AccountReference accountRef)
+        {
+            var ticket = await DataContext.Tickets.Where(t => t.Id == id)
+                                                  .Include(t => t.Accounts)
+                                                  .FirstOrDefaultAsync();
+            if (ticket == default)
+            {
+                return NotFound("Ticket not found");
+            }
+
+            var isAccountAssigned = ticket.Accounts!.Any(a => a.Id == accountRef.Id);
+            if (isAccountAssigned)
+            {
+                ModelState.AddModelError(nameof(Ticket.Accounts), "Account is already assigned to the ticket.");
+                return ValidationProblem();
+            }
+
+            var acccount = await DataContext.Accounts.FirstOrDefaultAsync(a => a.Id == id);
+            if (acccount == default)
+            {
+                return NotFound("Account not found");
+            }
+
+
+            ticket.Accounts!.Add(acccount);
+            await DataContext.SaveChangesAsync();
+
+            var res = ticket.Accounts;
+            res!.ForEach(a => a.Tickets = default);
+
+            return res;
+        }
+
+        [HttpDelete("{id:int}/Account")]
+        [Consumes(MediaTypeNames.Application.Json)]
+        public async Task<ActionResult<IEnumerable<Account>>> DeleteTicketAccountAsync([Range(1, int.MaxValue)] int id,
+                                                                                       AccountReference accountRef)
+        {
+            var ticket = await DataContext.Tickets.Where(t => t.Id == id)
+                                                  .Include(t => t.Accounts)
+                                                  .FirstOrDefaultAsync();
+            if (ticket == default)
+            {
+                return NotFound("Ticket not found");
+            }
+
+            var account = ticket.Accounts!.FirstOrDefault(a => a.Id == accountRef.Id);
+            var isAccountAssigned = account != default;
+            if (!isAccountAssigned)
+            {
+                ModelState.AddModelError(nameof(Ticket.Accounts), "Account is not assigned to the ticket.");
+                return ValidationProblem();
+            }
+
+
+            ticket.Accounts!.Remove(account!);
+            await DataContext.SaveChangesAsync();
+
+            var res = ticket.Accounts;
+            res!.ForEach(a => a.Tickets = default);
 
             return res;
         }
