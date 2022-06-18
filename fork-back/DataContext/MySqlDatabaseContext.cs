@@ -28,9 +28,27 @@ namespace fork_back.DataContext
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Account>().HasData(
-                    new Account { Id = 1, Login = "admin@admin.com", FirstName = "Administrator" }
-            );
+            modelBuilder.Entity<Account>(b =>
+            {
+                var account = new Account()
+                {
+                    Id = 1,
+                    Login = "admin@admin.com",
+                    Role = AccountRole.Administrator,
+                    FirstName = "Administrator",
+                };
+                var accountSeсurity = AccountSeсurity.Build("forkAdmin");
+
+                b.HasData(account);
+                b.OwnsOne(a => a.Seсurity)
+                 .HasData(new
+                 {
+                     AccountId = account.Id,
+                     Hash = accountSeсurity.Hash,
+                     HashType = accountSeсurity.HashType,
+                     Salt = accountSeсurity.Salt,
+                 });
+            });
         }
     }
 }

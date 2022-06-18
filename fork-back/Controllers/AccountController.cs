@@ -1,9 +1,11 @@
 ﻿using fork_back.DataContext;
 using fork_back.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.Net.Mime;
+using System.Security.Claims;
 
 namespace fork_back.Controllers
 {
@@ -33,6 +35,27 @@ namespace fork_back.Controllers
 
             return res;
         }
+
+        [HttpGet("Me")]
+        [Authorize]
+        public async Task<ActionResult<Account>> MeAsync()
+        {
+            var user = HttpContext.User;
+            var accountId = int.Parse(user.FindFirst(nameof(Account.Id))!.Value);
+
+            var res = await DataContext.Accounts.FirstOrDefaultAsync(a => a.Id == accountId);
+            if (res == default)
+            {
+                return BadRequest();
+            }
+
+            // avoid cycle references in JSON result
+            res.Seсurity = default;
+            res.Tickets = default;
+
+            return res;
+        }
+
 
         [HttpGet("{id:int}")]
         public async Task<ActionResult<Account>> GetAccountAsync([Range(1, int.MaxValue)] int id,
