@@ -2,6 +2,11 @@
 
 namespace fork_back.Models
 {
+    public enum IdTokenProvider
+    {
+        Google
+    }
+
     public class LoginReference
     {
         [EmailAddress]
@@ -28,6 +33,15 @@ namespace fork_back.Models
         public string Hash { get; set; } = string.Empty;
     }
 
+    public class IdTokenLoginRequest
+    {
+        public IdTokenProvider Provider { get; set; } = IdTokenProvider.Google;
+
+        public string IdToken { get; set; } = string.Empty;
+
+        public string? AccessToken { get; set; }
+    }
+
     public class LoginResponce
     {
         [EmailAddress]
@@ -36,8 +50,10 @@ namespace fork_back.Models
 
         public AccountRole Role { get; set; } = AccountRole.Developer;
 
-        public string AccessTocken { get; set; } = string.Empty;
+        public string AccessToken { get; set; } = string.Empty;
 
         public DateTime AccessValidTo { get; set; } = DateTime.UtcNow;
     }
+
+
 }

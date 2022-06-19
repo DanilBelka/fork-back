@@ -83,6 +83,7 @@ namespace fork_back.Controllers
         }
 
         [HttpDelete("{id:int}")]
+        [Authorize(Roles = "Administrator")]
         public async Task<ActionResult> DeleteAccountAsync([Range(1, int.MaxValue)] int id)
         {
             var res = await DataContext.Accounts.FirstOrDefaultAsync(a => a.Id == id);

@@ -47,12 +47,12 @@ namespace fork_back.Models
 
         internal static AccountSeсurity Build(string password)
         {
-            var salt = Seсurity.GenerateSalt();
+            var salt = Security.GenerateSalt();
             Debug.Assert(salt.Length == 80);
 
             var res = new AccountSeсurity()
             {
-                Hash = Seсurity.GetSHA256Hash($"{password}{salt}"),
+                Hash = Security.GetSHA256Hash($"{password}{salt}"),
                 HashType = "sha256",
                 Salt = salt
             };
