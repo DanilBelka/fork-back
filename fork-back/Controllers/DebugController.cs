@@ -46,6 +46,7 @@ namespace fork_back.Controllers
             {
                 new Account() { Login = "margaret.kyselgova@gmail.com", Role = AccountRole.Developer, FirstName = "PumaMargo", Seсurity = AccountSeсurity.Build("margo")},
                 new Account() { Login = "danil.belikov.y.gd@gmail.com", Role = AccountRole.Manager, FirstName = "DanilBelka", Seсurity = AccountSeсurity.Build("belka")},
+                new Account() { Login = "kyselgov@gmail.com", Role = AccountRole.Administrator, FirstName = "Supervisor", Seсurity = AccountSeсurity.Build("test")},
             };
 
             var projects = new List<Project>()

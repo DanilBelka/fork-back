@@ -1,13 +1,17 @@
 ﻿using fork_back.DataContext;
 using fork_back.Models;
 using fork_back.Utility;
+using Google.Apis.Auth;
+using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net.Mime;
+using System.Reflection;
 using System.Security.Claims;
+using System.Text;
 
 namespace fork_back.Controllers
 {
@@ -58,27 +62,59 @@ namespace fork_back.Controllers
                 return Unauthorized();
             }
 
-            var claims = new List<Claim> 
-            {
-                new Claim(nameof(Account.Id), account.Id.ToString()),
-                new Claim(ClaimTypes.Role, account.Role.ToString()),
-                new Claim(ClaimTypes.Upn, account.Login),
-                new Claim(ClaimTypes.Name, account.FirstName),
-                new Claim(ClaimTypes.Surname, account.LastName), 
-            };
-
-            var jwt = new JwtSecurityToken(
-                    issuer: Seсurity.JwtIssuer,
-                    audience: Seсurity.JwtAudience,
-                    claims: claims,
-                    expires: DateTime.UtcNow.Add(Seсurity.JwtAccessExperation),
-                    signingCredentials: new SigningCredentials(Seсurity.JwtSecurityKey, SecurityAlgorithms.HmacSha256));
+            var jwt = Security.BuildAccessToken(account);
 
             var res = new LoginResponce()
             {
                 Login = account.Login,
                 Role = account.Role,
-                AccessTocken = new JwtSecurityTokenHandler().WriteToken(jwt),
+                AccessToken = new JwtSecurityTokenHandler().WriteToken(jwt),
+                AccessValidTo = jwt.ValidTo,
+            };
+
+            return res;
+        }
+
+        [HttpPost("IdToken")]
+        [Consumes(MediaTypeNames.Application.Json)]
+        public async Task<ActionResult<LoginResponce>> LoginByIdTokenAsync(IdTokenLoginRequest loginRequest)
+        {
+            if (loginRequest.Provider != IdTokenProvider.Google)
+            {
+                ModelState.AddModelError(nameof(IdTokenLoginRequest.Provider), "Unknow IdToken provider");
+                return ValidationProblem();
+            }
+
+            var assemblyFolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            var configPath = Path.Combine(assemblyFolder ?? Directory.GetCurrentDirectory(), "google_client_secret.json");
+
+            var clientSecrets = (await GoogleClientSecrets.FromFileAsync(configPath)).Secrets;
+
+            var idTokenValidationSettings = new GoogleJsonWebSignature.ValidationSettings()
+            {
+                Audience = new string[] { clientSecrets!.ClientId }
+            };
+
+            var idTokenPayload = await GoogleJsonWebSignature.ValidateAsync(loginRequest.IdToken, idTokenValidationSettings);
+            if (string.IsNullOrEmpty(idTokenPayload.Email))
+            {
+                ModelState.AddModelError(nameof(IdTokenLoginRequest.IdToken), "IdToken does not contain account email");
+                return ValidationProblem();
+            }
+
+            var account = await DataContext.Accounts.FirstOrDefaultAsync(a => a.Login == idTokenPayload.Email);
+            if (account == default)
+            {
+                return NotFound();
+            }
+
+            var jwt = Security.BuildAccessToken(account);
+
+            var res = new LoginResponce()
+            {
+                Login = account.Login,
+                Role = account.Role,
+                AccessToken = new JwtSecurityTokenHandler().WriteToken(jwt),
                 AccessValidTo = jwt.ValidTo,
             };
 

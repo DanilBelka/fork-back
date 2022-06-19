@@ -1,10 +1,13 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using fork_back.Models;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 
 namespace fork_back.Utility
 {
-    static class Seсurity
+    static class Security
     {
         static readonly Random random = new Random();
         const string jwtKey = "pKDxnlRhVMMpNWjMFYHWBgqk5rRxFMpJZ2mdEJwY";
@@ -36,8 +39,30 @@ namespace fork_back.Utility
             return res;
         }
 
+        internal static JwtSecurityToken BuildAccessToken(Account account)
+        {
+            var claims = new List<Claim>
+            {
+                new Claim(nameof(Account.Id), account.Id.ToString()),
+                new Claim(ClaimTypes.Role, account.Role.ToString()),
+                new Claim(ClaimTypes.Upn, account.Login),
+                new Claim(ClaimTypes.Name, account.FirstName),
+                new Claim(ClaimTypes.Surname, account.LastName),
+            };
+
+            var jwt = new JwtSecurityToken(
+                    issuer: JwtIssuer,
+                    audience: JwtAudience,
+                    claims: claims,
+                    expires: DateTime.UtcNow.Add(JwtAccessExperation),
+                    signingCredentials: new SigningCredentials(JwtSecurityKey, SecurityAlgorithms.HmacSha256));
+
+            return jwt;
+        }
+
+
         // https://docs.microsoft.com/en-us/dotnet/api/system.security.cryptography.hashalgorithm.computehash?view=net-6.0
-        internal static string GetHash(HashAlgorithm hashAlgorithm, string input)
+        static string GetHash(HashAlgorithm hashAlgorithm, string input)
         {
             // Convert the input string to a byte array and compute the hash.
             byte[] data = hashAlgorithm.ComputeHash(Encoding.UTF8.GetBytes(input));
