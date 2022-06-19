@@ -1,0 +1,13 @@
+﻿<Window x:Class="fork_login_ui.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:fork_login_ui"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800" Loaded="OnLoaded" ResizeMode="NoResize">
+    <Grid>
+        <Button Content="Loging by Google" HorizontalAlignment="Left" Margin="30,31,0,0" VerticalAlignment="Top" Height="34" Width="119" Click="OnLoginAsync"/>
+        <TextBlock x:Name="accountTextInfo" HorizontalAlignment="Center" Margin="0,87,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="323" Width="741"/>
+    </Grid>
+</Window>
